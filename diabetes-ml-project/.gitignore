@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+
+.ipynb_checkpoints/
+
+data/interim/
+models/
+
+.DS_Store
+
