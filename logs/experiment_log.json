@@ -1,0 +1,142 @@
+[
+  {
+    "run_name": "Sprint2_LogisticRegression",
+    "timestamp": "2026-04-08T23:16:00.986449",
+    "hyperparams": {
+      "solver": "lbfgs",
+      "max_iter": 1000
+    },
+    "architecture": [
+      {
+        "type": "linear"
+      }
+    ],
+    "metrics": {
+      "auc": 0.80699,
+      "accuracy": 0.85021,
+      "f1": 0.2375,
+      "recall": 0.15252,
+      "precision": 0.53641,
+      "fn_missed": 4462,
+      "threshold": 0.5
+    },
+    "notes": "Linear baseline for comparison."
+  },
+  {
+    "run_name": "Sprint2_MLP_Baseline",
+    "timestamp": "2026-04-08T23:16:01.031439",
+    "hyperparams": {
+      "lr": 0.001,
+      "batch": 256,
+      "max_epochs": 50,
+      "patience": 5
+    },
+    "architecture": [
+      {
+        "Dense": 64,
+        "act": "relu"
+      },
+      {
+        "Dense": 32,
+        "act": "relu"
+      },
+      {
+        "Dense": 1,
+        "act": "sigmoid"
+      }
+    ],
+    "metrics": {
+      "auc": 0.81564,
+      "accuracy": 0.85472,
+      "f1": 0.26682,
+      "recall": 0.17284,
+      "precision": 0.58483,
+      "fn_missed": 4355,
+      "threshold": 0.5,
+      "epochs_trained": 20,
+      "best_val_auc": 0.81762,
+      "train_val_auc_gap": -0.00082
+    },
+    "notes": "No regularization. Early stopping only."
+  },
+  {
+    "run_name": "Sprint2_MLP_L2",
+    "timestamp": "2026-04-08T23:16:01.075028",
+    "hyperparams": {
+      "lr": 0.001,
+      "batch": 256,
+      "l2_lambda": 0.0001,
+      "patience": 5
+    },
+    "architecture": [
+      {
+        "Dense": 64,
+        "act": "relu",
+        "reg": "l2(0.0001)"
+      },
+      {
+        "Dense": 32,
+        "act": "relu",
+        "reg": "l2(0.0001)"
+      },
+      {
+        "Dense": 1,
+        "act": "sigmoid"
+      }
+    ],
+    "metrics": {
+      "auc": 0.81634,
+      "accuracy": 0.8548,
+      "f1": 0.26543,
+      "recall": 0.17151,
+      "precision": 0.58674,
+      "fn_missed": 4362,
+      "threshold": 0.5,
+      "epochs_trained": 28,
+      "best_val_auc": 0.81882
+    },
+    "notes": "L2 weight decay."
+  },
+  {
+    "run_name": "Sprint2_MLP_Dropout",
+    "timestamp": "2026-04-08T23:16:01.119483",
+    "hyperparams": {
+      "lr": 0.001,
+      "batch": 256,
+      "dropout": 0.3,
+      "patience": 5
+    },
+    "architecture": [
+      {
+        "Dense": 64,
+        "act": "relu"
+      },
+      {
+        "Dropout": 0.3
+      },
+      {
+        "Dense": 32,
+        "act": "relu"
+      },
+      {
+        "Dropout": 0.3
+      },
+      {
+        "Dense": 1,
+        "act": "sigmoid"
+      }
+    ],
+    "metrics": {
+      "auc": 0.81619,
+      "accuracy": 0.85219,
+      "f1": 0.11759,
+      "recall": 0.06439,
+      "precision": 0.67665,
+      "fn_missed": 4926,
+      "threshold": 0.5,
+      "epochs_trained": 23,
+      "best_val_auc": 0.81808
+    },
+    "notes": "Dropout rate=0.3."
+  }
+]
