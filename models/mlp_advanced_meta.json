@@ -1,0 +1,48 @@
+{
+  "model_file": "mlp_advanced.keras",
+  "threshold_clinical": 0.55,
+  "threshold_default": 0.5,
+  "feature_order": [
+    "HighBP",
+    "HighChol",
+    "CholCheck",
+    "BMI",
+    "Smoker",
+    "Stroke",
+    "HeartDiseaseorAttack",
+    "PhysActivity",
+    "Fruits",
+    "Veggies",
+    "HvyAlcoholConsump",
+    "AnyHealthcare",
+    "NoDocbcCost",
+    "GenHlth",
+    "MentHlth",
+    "PhysHlth",
+    "DiffWalk",
+    "Sex",
+    "Age",
+    "Education",
+    "Income"
+  ],
+  "winner_strategy": "class_weighted",
+  "trained_on": {
+    "y_val.csv": "3d2cd9ac62ee",
+    "X_train.csv": "c7816a250422",
+    "X_val.csv": "c78c0f501942",
+    "y_train.csv": "98f8b06a60f3",
+    "y_test.csv": "e02c77dc3f32",
+    "X_test.csv": "610b46d6084b"
+  },
+  "env": {
+    "git_sha": "aafa11b",
+    "python": "3.9.6",
+    "tf": "2.20.0",
+    "numpy": "2.0.2",
+    "pandas": "2.3.3",
+    "sklearn": "1.6.1",
+    "shap": "0.49.1",
+    "platform": "macOS-15.2-arm64-arm-64bit",
+    "timestamp": "2026-04-16T22:35:06.197117"
+  }
+}
