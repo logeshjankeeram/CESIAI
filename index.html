@@ -1,159 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voice Controlled Presentation</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice Presentation Engine</title>
+
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
       font-family: Arial, sans-serif;
       background: #0f172a;
-      color: #e2e8f0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    h1 { margin-bottom: 5px; font-size: 22px; }
-
-    .subtitle { font-size: 14px; opacity: 0.7; margin-bottom: 10px; }
-
-    .controls { margin-bottom: 10px; display: flex; gap: 10px; }
-
-    button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #2563eb;
       color: white;
     }
 
-    .status { font-size: 13px; margin-bottom: 8px; opacity: 0.8; }
-
-    .mic-visual {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #22c55e 20%, #065f46 70%);
-      margin-bottom: 10px;
-      transform: scale(1);
-      transition: transform 0.1s ease-out;
+    .container {
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
     }
 
-    .iframe-container {
-      width: 95%;
-      max-width: 1000px;
-      aspect-ratio: 16/9;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    }
-
-    iframe {
+    .slide {
+      height: 100vh;
       width: 100%;
-      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      scroll-snap-align: start;
+      text-align: center;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+
+    h1 { font-size: 40px; margin: 0; }
+    h2 { font-size: 28px; opacity: 0.9; }
+    p { max-width: 700px; opacity: 0.8; }
+
+    .controls {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    button {
+      padding: 8px 14px;
       border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .status {
+      position: fixed;
+      bottom: 15px;
+      left: 15px;
+      font-size: 12px;
+      opacity: 0.7;
+    }
+
+    .mic {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #22c55e, #065f46);
+      transform: scale(1);
+      transition: transform 0.1s ease;
     }
   </style>
 </head>
 <body>
 
-  <h1>Voice-Controlled Presentation</h1>
-  <div class="subtitle">Say: "next" or "back"</div>
+<div class="controls">
+  <button onclick="startVoice()">Start Voice</button>
+  <button onclick="stopVoice()">Stop Voice</button>
+  <button onclick="toggleFullscreen()">Fullscreen</button>
+</div>
 
-  <div class="controls">
-    <button onclick="openFullscreen()">Full Screen</button>
-    <button onclick="startVoice()">Start Voice</button>
-    <button onclick="stopVoice()">Stop Voice</button>
-  </div>
+<div class="mic" id="mic"></div>
+<div class="status" id="status">Idle</div>
 
-  <div class="status" id="status">Voice: OFF</div>
+<div class="container" id="container">
 
-  <div class="mic-visual" id="micVisual"></div>
+  <section class="slide">
+    <h1>Predicting Diabetes Risk</h1>
+    <h2>Voice Controlled Presentation</h2>
+  </section>
 
-  <div class="iframe-container" id="iframeBox">
-    <iframe id="presentationFrame" src="https://gamma.app/embed/7xlph3hrjciwd2u" allow="fullscreen"></iframe>
-  </div>
+  <section class="slide">
+    <h1>Problem</h1>
+    <p>Diabetes is increasing globally and early prediction is critical for prevention.</p>
+  </section>
 
-  <script>
-    let recognition;
-    let audioContext, analyser, dataArray, micStream;
+  <section class="slide">
+    <h1>Data</h1>
+    <p>Health survey dataset including BMI, glucose levels, age, and lifestyle factors.</p>
+  </section>
 
-    function openFullscreen() {
-      const elem = document.getElementById("iframeBox");
-      if (elem.requestFullscreen) elem.requestFullscreen();
-    }
+  <section class="slide">
+    <h1>Model</h1>
+    <p>Machine learning classification model used to predict risk levels.</p>
+  </section>
 
-    function pressKey(key) {
-      const iframe = document.getElementById("presentationFrame");
-      iframe.focus();
-      document.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
-    }
+  <section class="slide">
+    <h1>Conclusion</h1>
+    <p>Early detection improves prevention outcomes significantly.</p>
+  </section>
 
-    function startVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+</div>
 
-      if (!SpeechRecognition) {
-        alert("Use Google Chrome for voice control");
-        return;
-      }
+<script>
+let recognition;
+let micStream;
+let audioCtx;
+let analyser;
+let dataArray;
 
-      recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.lang = 'en-US';
+function getCurrentIndex() {
+  return Math.round(window.scrollY / window.innerHeight);
+}
 
-      recognition.onresult = function(event) {
-        const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
-        document.getElementById("status").innerText = "Heard: " + transcript;
+function scrollToIndex(i) {
+  const slides = document.querySelectorAll('.slide');
+  if (i < 0 || i >= slides.length) return;
+  slides[i].scrollIntoView({ behavior: 'smooth' });
+}
 
-        if (transcript.includes("next")) pressKey("ArrowRight");
-        if (transcript.includes("back") || transcript.includes("previous")) pressKey("ArrowLeft");
-      };
+function nextSlide() {
+  scrollToIndex(getCurrentIndex() + 1);
+}
 
-      recognition.start();
-      document.getElementById("status").innerText = "Voice: ON";
+function prevSlide() {
+  scrollToIndex(getCurrentIndex() - 1);
+}
 
-      startMicVisualization();
-    }
+function toggleFullscreen() {
+  const el = document.documentElement;
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else {
+    el.requestFullscreen();
+  }
+}
 
-    function stopVoice() {
-      if (recognition) recognition.stop();
-      if (audioContext) audioContext.close();
-      document.getElementById("status").innerText = "Voice: OFF";
-    }
+function startVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Use Chrome");
+    return;
+  }
 
-    async function startMicVisualization() {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      analyser = audioContext.createAnalyser();
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.lang = 'en-US';
 
-      const source = audioContext.createMediaStreamSource(micStream);
-      source.connect(analyser);
+  recognition.onresult = (e) => {
+    const text = e.results[e.results.length - 1][0].transcript.toLowerCase();
+    document.getElementById('status').innerText = "Heard: " + text;
 
-      analyser.fftSize = 256;
-      const bufferLength = analyser.frequencyBinCount;
-      dataArray = new Uint8Array(bufferLength);
+    if (text.includes("next")) nextSlide();
+    if (text.includes("back") || text.includes("previous")) prevSlide();
+  };
 
-      function animate() {
-        analyser.getByteFrequencyData(dataArray);
+  recognition.start();
+  document.getElementById('status').innerText = "Voice ON";
 
-        let sum = 0;
-        for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
-        let avg = sum / bufferLength;
+  startMic();
+}
 
-        const scale = 1 + avg / 200;
-        document.getElementById("micVisual").style.transform = `scale(${scale})`;
+function stopVoice() {
+  if (recognition) recognition.stop();
+  if (audioCtx) audioCtx.close();
+  document.getElementById('status').innerText = "Voice OFF";
+}
 
-        requestAnimationFrame(animate);
-      }
+async function startMic() {
+  micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioCtx.createAnalyser();
 
-      animate();
-    }
-  </script>
+  const source = audioCtx.createMediaStreamSource(micStream);
+  source.connect(analyser);
+
+  analyser.fftSize = 256;
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  function animate() {
+    analyser.getByteFrequencyData(dataArray);
+    let avg = dataArray.reduce((a,b)=>a+b,0)/dataArray.length;
+
+    const scale = 1 + avg / 200;
+    document.getElementById('mic').style.transform = `scale(${scale})`;
+
+    requestAnimationFrame(animate);
+  }
+
+  animate();
+}
+</script>
 
 </body>
 </html>
