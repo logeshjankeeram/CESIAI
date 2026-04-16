@@ -18,8 +18,26 @@
     }
 
     h1 {
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       font-size: 24px;
+    }
+
+    .controls {
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #1d4ed8;
     }
 
     .iframe-container {
@@ -41,12 +59,29 @@
 <body>
   <h1>Predicting Diabetes Risk from Health-Survey Data</h1>
 
-  <div class="iframe-container">
+  <div class="controls">
+    <button onclick="openFullscreen()">Full Screen</button>
+  </div>
+
+  <div class="iframe-container" id="iframeBox">
     <iframe 
       src="https://gamma.app/embed/7xlph3hrjciwd2u"
       allow="fullscreen"
       title="Predicting Diabetes Risk from Health-Survey Data">
     </iframe>
   </div>
+
+  <script>
+    function openFullscreen() {
+      const elem = document.getElementById("iframeBox");
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) { // Safari
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { // IE11
+        elem.msRequestFullscreen();
+      }
+    }
+  </script>
 </body>
 </html>
