@@ -17,22 +17,11 @@
       height: 100vh;
     }
 
-    h1 {
-      margin-bottom: 5px;
-      font-size: 22px;
-    }
+    h1 { margin-bottom: 5px; font-size: 22px; }
 
-    .subtitle {
-      font-size: 14px;
-      opacity: 0.7;
-      margin-bottom: 10px;
-    }
+    .subtitle { font-size: 14px; opacity: 0.7; margin-bottom: 10px; }
 
-    .controls {
-      margin-bottom: 10px;
-      display: flex;
-      gap: 10px;
-    }
+    .controls { margin-bottom: 10px; display: flex; gap: 10px; }
 
     button {
       padding: 8px 16px;
@@ -43,10 +32,16 @@
       color: white;
     }
 
-    .status {
-      font-size: 13px;
-      margin-bottom: 8px;
-      opacity: 0.8;
+    .status { font-size: 13px; margin-bottom: 8px; opacity: 0.8; }
+
+    .mic-visual {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #22c55e 20%, #065f46 70%);
+      margin-bottom: 10px;
+      transform: scale(1);
+      transition: transform 0.1s ease-out;
     }
 
     .iframe-container {
@@ -78,16 +73,15 @@
 
   <div class="status" id="status">Voice: OFF</div>
 
+  <div class="mic-visual" id="micVisual"></div>
+
   <div class="iframe-container" id="iframeBox">
-    <iframe 
-      id="presentationFrame"
-      src="https://gamma.app/embed/7xlph3hrjciwd2u"
-      allow="fullscreen">
-    </iframe>
+    <iframe id="presentationFrame" src="https://gamma.app/embed/7xlph3hrjciwd2u" allow="fullscreen"></iframe>
   </div>
 
   <script>
     let recognition;
+    let audioContext, analyser, dataArray, micStream;
 
     function openFullscreen() {
       const elem = document.getElementById("iframeBox");
@@ -97,8 +91,6 @@
     function pressKey(key) {
       const iframe = document.getElementById("presentationFrame");
       iframe.focus();
-
-      // send key event to parent (browser level)
       document.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
     }
 
@@ -118,24 +110,48 @@
         const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
         document.getElementById("status").innerText = "Heard: " + transcript;
 
-        if (transcript.includes("next")) {
-          pressKey("ArrowRight");
-        }
-
-        if (transcript.includes("back") || transcript.includes("previous")) {
-          pressKey("ArrowLeft");
-        }
+        if (transcript.includes("next")) pressKey("ArrowRight");
+        if (transcript.includes("back") || transcript.includes("previous")) pressKey("ArrowLeft");
       };
 
       recognition.start();
       document.getElementById("status").innerText = "Voice: ON";
+
+      startMicVisualization();
     }
 
     function stopVoice() {
-      if (recognition) {
-        recognition.stop();
-        document.getElementById("status").innerText = "Voice: OFF";
+      if (recognition) recognition.stop();
+      if (audioContext) audioContext.close();
+      document.getElementById("status").innerText = "Voice: OFF";
+    }
+
+    async function startMicVisualization() {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+
+      const source = audioContext.createMediaStreamSource(micStream);
+      source.connect(analyser);
+
+      analyser.fftSize = 256;
+      const bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+
+      function animate() {
+        analyser.getByteFrequencyData(dataArray);
+
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
+        let avg = sum / bufferLength;
+
+        const scale = 1 + avg / 200;
+        document.getElementById("micVisual").style.transform = `scale(${scale})`;
+
+        requestAnimationFrame(animate);
       }
+
+      animate();
     }
   </script>
 
