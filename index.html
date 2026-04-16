@@ -1,207 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Voice Presentation Engine</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Predicting Diabetes Risk</title>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
       font-family: Arial, sans-serif;
       background: #0f172a;
-      color: white;
-    }
-
-    .container {
-      height: 100vh;
-      overflow-y: auto;
-      scroll-snap-type: y mandatory;
-      scroll-behavior: smooth;
-    }
-
-    .slide {
-      height: 100vh;
-      width: 100%;
+      color: #e2e8f0;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      scroll-snap-align: start;
-      text-align: center;
-      padding: 40px;
-      box-sizing: border-box;
+      justify-content: center;
+      height: 100vh;
     }
 
-    h1 { font-size: 40px; margin: 0; }
-    h2 { font-size: 28px; opacity: 0.9; }
-    p { max-width: 700px; opacity: 0.8; }
+    h1 {
+      margin-bottom: 10px;
+      font-size: 24px;
+      text-align: center;
+    }
 
     .controls {
-      position: fixed;
-      top: 15px;
-      left: 15px;
+      margin-bottom: 10px;
       display: flex;
       gap: 10px;
-      z-index: 10;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     button {
       padding: 8px 14px;
       border: none;
       border-radius: 8px;
+      cursor: pointer;
       background: #2563eb;
       color: white;
-      cursor: pointer;
     }
 
-    button:hover { background: #1d4ed8; }
+    button:hover {
+      background: #1d4ed8;
+    }
 
     .status {
-      position: fixed;
-      bottom: 15px;
-      left: 15px;
-      font-size: 12px;
-      opacity: 0.7;
+      font-size: 13px;
+      margin-bottom: 8px;
+      opacity: 0.8;
     }
 
-    .mic {
-      position: fixed;
-      top: 15px;
-      right: 15px;
+    .mic-visual {
       width: 50px;
       height: 50px;
       border-radius: 50%;
       background: radial-gradient(circle, #22c55e, #065f46);
+      margin-bottom: 10px;
       transform: scale(1);
       transition: transform 0.1s ease;
+    }
+
+    .iframe-container {
+      width: 95%;
+      max-width: 1000px;
+      aspect-ratio: 16/9;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
   </style>
 </head>
 <body>
 
-<div class="controls">
-  <button onclick="startVoice()">Start Voice</button>
-  <button onclick="stopVoice()">Stop Voice</button>
-  <button onclick="toggleFullscreen()">Fullscreen</button>
-</div>
+  <h1>Predicting Diabetes Risk from Health-Survey Data</h1>
 
-<div class="mic" id="mic"></div>
-<div class="status" id="status">Idle</div>
+  <div class="controls">
+    <button onclick="openFullscreen()">Full Screen</button>
+    <button onclick="startVoice()">🎤 Start Voice</button>
+    <button onclick="stopVoice()">Stop Voice</button>
+  </div>
 
-<div class="container" id="container">
+  <div class="status" id="status">Voice: OFF</div>
 
-  <section class="slide">
-    <h1>Predicting Diabetes Risk</h1>
-    <h2>Voice Controlled Presentation</h2>
-  </section>
+  <div class="mic-visual" id="micVisual"></div>
 
-  <section class="slide">
-    <h1>Problem</h1>
-    <p>Diabetes is increasing globally and early prediction is critical for prevention.</p>
-  </section>
-
-  <section class="slide">
-    <h1>Data</h1>
-    <p>Health survey dataset including BMI, glucose levels, age, and lifestyle factors.</p>
-  </section>
-
-  <section class="slide">
-    <h1>Model</h1>
-    <p>Machine learning classification model used to predict risk levels.</p>
-  </section>
-
-  <section class="slide">
-    <h1>Conclusion</h1>
-    <p>Early detection improves prevention outcomes significantly.</p>
-  </section>
-
-</div>
+  <div class="iframe-container" id="iframeBox">
+    <iframe 
+      id="presentationFrame"
+      src="https://gamma.app/embed/7xlph3hrjciwd2u"
+      allow="fullscreen"
+      title="Presentation">
+    </iframe>
+  </div>
 
 <script>
 let recognition;
-let micStream;
-let audioCtx;
+let audioContext;
 let analyser;
 let dataArray;
+let micStream;
 
-function getContainer() {
-  return document.getElementById('container');
+function openFullscreen() {
+  const elem = document.getElementById("iframeBox");
+  if (elem.requestFullscreen) elem.requestFullscreen();
 }
 
-function getCurrentIndex() {
-  const container = getContainer();
-  const slideHeight = window.innerHeight;
-  return Math.round(container.scrollTop / slideHeight);
-}
-
-function scrollToIndex(i) {
-  const container = getContainer();
-  const slides = document.querySelectorAll('.slide');
-
-  if (i < 0 || i >= slides.length) return;
-
-  container.scrollTo({
-    top: i * window.innerHeight,
-    behavior: 'smooth'
-  });
-}
-
-function nextSlide() {
-  scrollToIndex(getCurrentIndex() + 1);
-}
-
-function prevSlide() {
-  scrollToIndex(getCurrentIndex() - 1);
-}
-
-function toggleFullscreen() {
-  const el = document.documentElement;
-  if (document.fullscreenElement) document.exitFullscreen();
-  else el.requestFullscreen();
+function pressKey(key) {
+  // NOTE: iframe control is limited due to browser security.
+  // This may not work depending on Gamma restrictions.
+  document.dispatchEvent(new KeyboardEvent("keydown", { key }));
 }
 
 function startVoice() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    alert('Use Chrome');
+    alert("Use Chrome for voice recognition");
     return;
   }
 
   recognition = new SpeechRecognition();
   recognition.continuous = true;
-  recognition.lang = 'en-US';
+  recognition.lang = "en-US";
 
-  recognition.onresult = (e) => {
-    const text = e.results[e.results.length - 1][0].transcript.toLowerCase();
-    document.getElementById('status').innerText = 'Heard: ' + text;
+  recognition.onresult = (event) => {
+    const text = event.results[event.results.length - 1][0].transcript.toLowerCase();
+    document.getElementById("status").innerText = "Heard: " + text;
 
-    if (text.includes('next')) nextSlide();
-    if (text.includes('back') || text.includes('previous')) prevSlide();
+    if (text.includes("next")) pressKey("ArrowRight");
+    if (text.includes("back") || text.includes("previous")) pressKey("ArrowLeft");
   };
 
   recognition.start();
-  document.getElementById('status').innerText = 'Voice ON';
+  document.getElementById("status").innerText = "Voice: ON";
 
   startMic();
 }
 
 function stopVoice() {
   if (recognition) recognition.stop();
-  if (audioCtx) audioCtx.close();
-  document.getElementById('status').innerText = 'Voice OFF';
+  if (audioContext) audioContext.close();
+  document.getElementById("status").innerText = "Voice: OFF";
 }
 
 async function startMic() {
   micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  analyser = audioCtx.createAnalyser();
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioContext.createAnalyser();
 
-  const source = audioCtx.createMediaStreamSource(micStream);
+  const source = audioContext.createMediaStreamSource(micStream);
   source.connect(analyser);
 
   analyser.fftSize = 256;
@@ -211,7 +164,8 @@ async function startMic() {
     analyser.getByteFrequencyData(dataArray);
     let avg = dataArray.reduce((a,b)=>a+b,0)/dataArray.length;
 
-    document.getElementById('mic').style.transform = `scale(${1 + avg/200})`;
+    const scale = 1 + avg / 200;
+    document.getElementById("micVisual").style.transform = `scale(${scale})`;
 
     requestAnimationFrame(animate);
   }
