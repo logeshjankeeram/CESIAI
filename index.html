@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Predicting Diabetes Risk</title>
+  <title>Voice Controlled Presentation</title>
   <style>
     body {
       margin: 0;
@@ -18,12 +18,20 @@
     }
 
     h1 {
+      margin-bottom: 5px;
+      font-size: 22px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.7;
       margin-bottom: 10px;
-      font-size: 24px;
     }
 
     .controls {
       margin-bottom: 10px;
+      display: flex;
+      gap: 10px;
     }
 
     button {
@@ -33,16 +41,17 @@
       cursor: pointer;
       background: #2563eb;
       color: white;
-      font-size: 14px;
     }
 
-    button:hover {
-      background: #1d4ed8;
+    .status {
+      font-size: 13px;
+      margin-bottom: 8px;
+      opacity: 0.8;
     }
 
     .iframe-container {
-      width: 90%;
-      max-width: 900px;
+      width: 95%;
+      max-width: 1000px;
       aspect-ratio: 16/9;
       border-radius: 12px;
       overflow: hidden;
@@ -57,31 +66,78 @@
   </style>
 </head>
 <body>
-  <h1>Predicting Diabetes Risk from Health-Survey Data</h1>
+
+  <h1>Voice-Controlled Presentation</h1>
+  <div class="subtitle">Say: "next" or "back"</div>
 
   <div class="controls">
     <button onclick="openFullscreen()">Full Screen</button>
+    <button onclick="startVoice()">Start Voice</button>
+    <button onclick="stopVoice()">Stop Voice</button>
   </div>
+
+  <div class="status" id="status">Voice: OFF</div>
 
   <div class="iframe-container" id="iframeBox">
     <iframe 
+      id="presentationFrame"
       src="https://gamma.app/embed/7xlph3hrjciwd2u"
-      allow="fullscreen"
-      title="Predicting Diabetes Risk from Health-Survey Data">
+      allow="fullscreen">
     </iframe>
   </div>
 
   <script>
+    let recognition;
+
     function openFullscreen() {
       const elem = document.getElementById("iframeBox");
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) { // Safari
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) { // IE11
-        elem.msRequestFullscreen();
+      if (elem.requestFullscreen) elem.requestFullscreen();
+    }
+
+    function pressKey(key) {
+      const iframe = document.getElementById("presentationFrame");
+      iframe.focus();
+
+      // send key event to parent (browser level)
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: key }));
+    }
+
+    function startVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        alert("Use Google Chrome for voice control");
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+        document.getElementById("status").innerText = "Heard: " + transcript;
+
+        if (transcript.includes("next")) {
+          pressKey("ArrowRight");
+        }
+
+        if (transcript.includes("back") || transcript.includes("previous")) {
+          pressKey("ArrowLeft");
+        }
+      };
+
+      recognition.start();
+      document.getElementById("status").innerText = "Voice: ON";
+    }
+
+    function stopVoice() {
+      if (recognition) {
+        recognition.stop();
+        document.getElementById("status").innerText = "Voice: OFF";
       }
     }
   </script>
+
 </body>
 </html>
