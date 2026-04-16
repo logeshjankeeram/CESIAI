@@ -18,8 +18,9 @@
 
     .container {
       height: 100vh;
-      overflow-y: scroll;
+      overflow-y: auto;
       scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
     }
 
     .slide {
@@ -57,9 +58,7 @@
       cursor: pointer;
     }
 
-    button:hover {
-      background: #1d4ed8;
-    }
+    button:hover { background: #1d4ed8; }
 
     .status {
       position: fixed;
@@ -129,14 +128,26 @@ let audioCtx;
 let analyser;
 let dataArray;
 
+function getContainer() {
+  return document.getElementById('container');
+}
+
 function getCurrentIndex() {
-  return Math.round(window.scrollY / window.innerHeight);
+  const container = getContainer();
+  const slideHeight = window.innerHeight;
+  return Math.round(container.scrollTop / slideHeight);
 }
 
 function scrollToIndex(i) {
+  const container = getContainer();
   const slides = document.querySelectorAll('.slide');
+
   if (i < 0 || i >= slides.length) return;
-  slides[i].scrollIntoView({ behavior: 'smooth' });
+
+  container.scrollTo({
+    top: i * window.innerHeight,
+    behavior: 'smooth'
+  });
 }
 
 function nextSlide() {
@@ -149,17 +160,15 @@ function prevSlide() {
 
 function toggleFullscreen() {
   const el = document.documentElement;
-  if (document.fullscreenElement) {
-    document.exitFullscreen();
-  } else {
-    el.requestFullscreen();
-  }
+  if (document.fullscreenElement) document.exitFullscreen();
+  else el.requestFullscreen();
 }
 
 function startVoice() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
   if (!SpeechRecognition) {
-    alert("Use Chrome");
+    alert('Use Chrome');
     return;
   }
 
@@ -169,14 +178,14 @@ function startVoice() {
 
   recognition.onresult = (e) => {
     const text = e.results[e.results.length - 1][0].transcript.toLowerCase();
-    document.getElementById('status').innerText = "Heard: " + text;
+    document.getElementById('status').innerText = 'Heard: ' + text;
 
-    if (text.includes("next")) nextSlide();
-    if (text.includes("back") || text.includes("previous")) prevSlide();
+    if (text.includes('next')) nextSlide();
+    if (text.includes('back') || text.includes('previous')) prevSlide();
   };
 
   recognition.start();
-  document.getElementById('status').innerText = "Voice ON";
+  document.getElementById('status').innerText = 'Voice ON';
 
   startMic();
 }
@@ -184,7 +193,7 @@ function startVoice() {
 function stopVoice() {
   if (recognition) recognition.stop();
   if (audioCtx) audioCtx.close();
-  document.getElementById('status').innerText = "Voice OFF";
+  document.getElementById('status').innerText = 'Voice OFF';
 }
 
 async function startMic() {
@@ -202,8 +211,7 @@ async function startMic() {
     analyser.getByteFrequencyData(dataArray);
     let avg = dataArray.reduce((a,b)=>a+b,0)/dataArray.length;
 
-    const scale = 1 + avg / 200;
-    document.getElementById('mic').style.transform = `scale(${scale})`;
+    document.getElementById('mic').style.transform = `scale(${1 + avg/200})`;
 
     requestAnimationFrame(animate);
   }
