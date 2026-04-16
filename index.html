@@ -18,51 +18,14 @@
     }
 
     h1 {
-      margin-bottom: 10px;
+      margin-bottom: 20px;
       font-size: 24px;
       text-align: center;
     }
 
-    .controls {
-      margin-bottom: 10px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    button {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background: #2563eb;
-      color: white;
-    }
-
-    button:hover {
-      background: #1d4ed8;
-    }
-
-    .status {
-      font-size: 13px;
-      margin-bottom: 8px;
-      opacity: 0.8;
-    }
-
-    .mic-visual {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #22c55e, #065f46);
-      margin-bottom: 10px;
-      transform: scale(1);
-      transition: transform 0.1s ease;
-    }
-
     .iframe-container {
-      width: 95%;
-      max-width: 1000px;
+      width: 90%;
+      max-width: 900px;
       aspect-ratio: 16/9;
       border-radius: 12px;
       overflow: hidden;
@@ -74,6 +37,24 @@
       height: 100%;
       border: none;
     }
+
+    .controls {
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
   </style>
 </head>
 <body>
@@ -82,97 +63,28 @@
 
   <div class="controls">
     <button onclick="openFullscreen()">Full Screen</button>
-    <button onclick="startVoice()">🎤 Start Voice</button>
-    <button onclick="stopVoice()">Stop Voice</button>
   </div>
-
-  <div class="status" id="status">Voice: OFF</div>
-
-  <div class="mic-visual" id="micVisual"></div>
 
   <div class="iframe-container" id="iframeBox">
     <iframe 
-      id="presentationFrame"
       src="https://gamma.app/embed/7xlph3hrjciwd2u"
       allow="fullscreen"
-      title="Presentation">
+      title="Predicting Diabetes Risk from Health-Survey Data">
     </iframe>
   </div>
 
-<script>
-let recognition;
-let audioContext;
-let analyser;
-let dataArray;
-let micStream;
-
-function openFullscreen() {
-  const elem = document.getElementById("iframeBox");
-  if (elem.requestFullscreen) elem.requestFullscreen();
-}
-
-function pressKey(key) {
-  // NOTE: iframe control is limited due to browser security.
-  // This may not work depending on Gamma restrictions.
-  document.dispatchEvent(new KeyboardEvent("keydown", { key }));
-}
-
-function startVoice() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    alert("Use Chrome for voice recognition");
-    return;
-  }
-
-  recognition = new SpeechRecognition();
-  recognition.continuous = true;
-  recognition.lang = "en-US";
-
-  recognition.onresult = (event) => {
-    const text = event.results[event.results.length - 1][0].transcript.toLowerCase();
-    document.getElementById("status").innerText = "Heard: " + text;
-
-    if (text.includes("next")) pressKey("ArrowRight");
-    if (text.includes("back") || text.includes("previous")) pressKey("ArrowLeft");
-  };
-
-  recognition.start();
-  document.getElementById("status").innerText = "Voice: ON";
-
-  startMic();
-}
-
-function stopVoice() {
-  if (recognition) recognition.stop();
-  if (audioContext) audioContext.close();
-  document.getElementById("status").innerText = "Voice: OFF";
-}
-
-async function startMic() {
-  micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  analyser = audioContext.createAnalyser();
-
-  const source = audioContext.createMediaStreamSource(micStream);
-  source.connect(analyser);
-
-  analyser.fftSize = 256;
-  dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-  function animate() {
-    analyser.getByteFrequencyData(dataArray);
-    let avg = dataArray.reduce((a,b)=>a+b,0)/dataArray.length;
-
-    const scale = 1 + avg / 200;
-    document.getElementById("micVisual").style.transform = `scale(${scale})`;
-
-    requestAnimationFrame(animate);
-  }
-
-  animate();
-}
-</script>
+  <script>
+    function openFullscreen() {
+      const elem = document.getElementById("iframeBox");
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
+    }
+  </script>
 
 </body>
 </html>
